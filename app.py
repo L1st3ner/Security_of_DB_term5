@@ -12,24 +12,20 @@ app = Flask(__name__)
 
 # --- Настройки приложения ---
 # Устанавливаем SECRET_KEY (важно для Flask-приложений, Flask-Login и т.д.)
-# ЗАМЕНИ НА СЛУЧАЙНЫЙ КЛЮЧ В ПРОДАКШЕНЕ!
 app.config['SECRET_KEY'] = 'a_very_secret_key_that_should_be_random_and_long_for_production_use'
 
+# Словарь, сопоставляющий роли с доступными представлениями/таблицами
+# Ключ - имя роли, значение - словарь {отображаемое_имя: модель_ORM}
 AVAILABLE_VIEWS = {
     'admin': {
-        # Для админа можно перечислить все основные таблицы
-        # или просто все модели из models.py, если нужно
-        # Пока добавим только представления из ЛР2 для примера
-        # Импортируем модели в начале app.py, если ещё не импортированы
+
         "Анализ продаж по блюдам": "SalesByDishView",
         "Загрузка персонала": "StaffWorkloadView",
         "Популярность блюд": "DishPopularityByCategoryView",
         "Финансовый отчёт": "FinancialSummaryView",
         "Затраты по поставщикам": "IngredientCostsBySupplierView",
-        # ... можно добавить и таблицы, например:
-        # "Рестораны": "Restaurant",
-        # "Сотрудники": "Employee",
-        # и т.д.
+        "Рестораны": "Restaurant",
+        "Сотрудники": "Employee",
     },
     'manager': {
         "Анализ продаж по блюдам": "SalesByDishView",
@@ -43,8 +39,6 @@ AVAILABLE_VIEWS = {
 }
 
 # Устанавливаем строку подключения к БД restaurant_network
-# Замени 'postgres' на имя пользователя и пароль к БД, если они отличаются
-# Формат: 'postgresql+psycopg2://username:password@host:port/database_name'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres:postgres@localhost/restaurant_network'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # Отключаем отслеживание изменений для производительности
 
@@ -62,41 +56,7 @@ login_manager.login_view = 'login'
 @login_manager.user_loader
 def load_user(user_id):
     # Загружаем пользователя из БД по ID
-    # БЫЛО: return AppUser.query.get(int(user_id))
-    return db.session.query(AppUser).get(int(user_id)) # <-- ИСПРАВЛЕНО
-
-
-# app.py
-# ... (все импорты, настройки, аутентификация)
-
-# Словарь, сопоставляющий роли с доступными представлениями/таблицами
-# Ключ - имя роли, значение - словарь {отображаемое_имя: модель_ORM}
-AVAILABLE_VIEWS = {
-    'admin': {
-        # Для админа можно перечислить все основные таблицы
-        # или просто все модели из models.py, если нужно
-        # Пока добавим только представления из ЛР2 для примера
-        # Импортируем модели в начале app.py, если ещё не импортированы
-        "Анализ продаж по блюдам": "SalesByDishView",
-        "Загрузка персонала": "StaffWorkloadView",
-        "Популярность блюд": "DishPopularityByCategoryView",
-        "Финансовый отчёт": "FinancialSummaryView",
-        "Затраты по поставщикам": "IngredientCostsBySupplierView",
-        # ... можно добавить и таблицы, например:
-        # "Рестораны": "Restaurant",
-        # "Сотрудники": "Employee",
-        # и т.д.
-    },
-    'manager': {
-        "Анализ продаж по блюдам": "SalesByDishView",
-        "Загрузка персонала": "StaffWorkloadView",
-        "Популярность блюд": "DishPopularityByCategoryView",
-    },
-    'accountant': {
-        "Финансовый отчёт": "FinancialSummaryView",
-        "Затраты по поставщикам": "IngredientCostsBySupplierView",
-    }
-}
+    return db.session.query(AppUser).get(int(user_id))
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -123,8 +83,6 @@ def index():
         # Проверяем, есть ли выбранное представление в списке доступных для роли
         if selected_view_name in available_views.values():
             # Получаем ORM-модель по её имени
-            # Это немного хитрый способ получить класс из модуля по строке имени
-            # Импортируем модуль models
             import models
             ModelClass = getattr(models, selected_view_name, None)
 
@@ -152,7 +110,7 @@ def index():
                 # Выполняем запрос
                 results = query.all()
 
-                # --- НОВЫЙ КОД: Преобразование объектов ORM в словари ---
+                # --- Преобразование объектов ORM в словари ---
                 if results:
                     # Получаем имена столбцов из самой модели
                     view_columns = list(ModelClass.__table__.columns.keys())
@@ -163,7 +121,6 @@ def index():
                         for col in view_columns:
                             row_dict[col] = getattr(row, col)
                         results_as_dicts.append(row_dict)
-                # --- КОНЕЦ НОВОГО КОДА ---
 
             else:
                 # Обработка ошибки: модель не найдена
@@ -180,7 +137,7 @@ def index():
                            available_views=available_views,
                            selected_view_name=selected_view_name,
                            selected_view_display_name=selected_view_display_name,
-                           results=results_as_dicts, # <-- ПЕРЕДАЁМ СЛОВАРИ
+                           results=results_as_dicts, 
                            view_columns=view_columns,
                            sort_by=sort_by,
                            order=order
@@ -215,14 +172,13 @@ def login():
 @login_required # Можно выйти только если вошёл
 def logout():
     logout_user() # Выходим через Flask-Login
-    # flash('Вы вышли из системы.', 'info') # Опционально
     return redirect(url_for('login')) # Перенаправляем на страницу входа
 
 
 if __name__ == '__main__':
     # Создаём контекст приложения
     with app.app_context():
-        # Инициализируем Base с db.engine (необязательно, но явно)
+        # Инициализируем Base с db.engine 
         Base.metadata.bind = db.engine
         # Создаём все таблицы, определённые в Base (из models.py), если они не существуют
         # Это включает AppUser, так как она определена в models.py и наследуется от Base
@@ -231,8 +187,7 @@ if __name__ == '__main__':
 
         # --- Создание тестовых пользователей приложения ---
         # Проверим, существуют ли уже пользователи
-        # БЫЛО: if not AppUser.query.first():
-        if not db.session.query(AppUser).first(): # <-- ИСПРАВЛЕНО
+        if not db.session.query(AppUser).first(): 
             print("Создаю тестовых пользователей приложения...")
 
             # Создаём пользователя-менеджера
@@ -256,3 +211,4 @@ if __name__ == '__main__':
             print("Пользователи приложения уже существуют.")
 
     app.run(debug=True)
+
