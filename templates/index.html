@@ -1,0 +1,94 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Restaurant Dashboard</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Добро пожаловать, {{ username }} (Роль: {{ user_role }})!</h1>
+    <p><a href="{{ url_for('logout') }}">Выйти</a></p>
+
+    <hr>
+
+    <h2>Выбор данных для отображения:</h2>
+    <form method="post">
+        <div class="form-group">
+            <label for="view_select">Доступные представления:</label>
+            <select name="view_select" id="view_select" required>
+                <option value="">-- Выберите --</option>
+                {% for display_name, model_name in available_views.items() %}
+                    <option value="{{ model_name }}" {% if model_name == selected_view_name %}selected{% endif %}>
+                        {{ display_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <input type="submit" value="Показать">
+    </form>
+
+    {% if results %}
+        <h2>{{ selected_view_display_name }}</h2>
+
+        <!-- Форма сортировки -->
+        <form method="post">
+            <input type="hidden" name="view_select" value="{{ selected_view_name }}"> <!-- Скрытое поле для сохранения выбора представления -->
+            <div class="form-group">
+                <label for="sort_by">Сортировать по:</label>
+                <select name="sort_by" id="sort_by">
+                    <option value="">-- Без сортировки --</option>
+                    {% for col in view_columns %}
+                        <option value="{{ col }}" {% if col == sort_by %}selected{% endif %}>{{ col }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="radio" name="order" value="asc" {% if order == 'asc' %}checked{% endif %}> По возрастанию
+                </label>
+                <label>
+                    <input type="radio" name="order" value="desc" {% if order == 'desc' %}checked{% endif %}> По убыванию
+                </label>
+            </div>
+            <input type="submit" value="Применить сортировку">
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    {% for col in view_columns %}
+                        <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in results %}
+                    <tr>
+                        {% for col in view_columns %}
+                            <td>{{ row[col] }}</td> <!-- ИСПОЛЬЗУЕМ row[col] -->
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+</body>
+</html>
