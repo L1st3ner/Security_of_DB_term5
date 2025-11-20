@@ -18,7 +18,6 @@ class AppUser(Base, UserMixin):
     def set_password(self, password):
         """Хеширует пароль и сохраняет хэш."""
         # Используем простой хэш для примера.
-        # В реальности используй bcrypt или werkzeug.security.generate_password_hash!
         import hashlib
         self.password_hash = hashlib.sha256(password.encode()).hexdigest()
 
@@ -28,7 +27,7 @@ class AppUser(Base, UserMixin):
         return self.password_hash == hashlib.sha256(password.encode()).hexdigest()
 
 # --- Модели для таблиц и представлений из БД restaurant_network ---
-# Эти модели описывают структуру *существующих* таблиц/представлений из ЛР2/ЛР3
+# Эти модели описывают структуру существующих таблиц/представлений из ЛР2/ЛР3
 
 # Модель для таблицы Restaurants
 class Restaurant(Base):
@@ -41,8 +40,8 @@ class Restaurant(Base):
     opening_hours = Column(String(100))
     created_at = Column(DateTime)
 
-    # Связи (опционально, но полезно для ORM)
-    # employees = relationship("Employee", back_populates="restaurant") # Пример связи
+    # Связи
+    # employees = relationship("Employee", back_populates="restaurant") 
 
 
 # Модель для таблицы DishCategories
@@ -68,9 +67,9 @@ class Dish(Base):
     created_at = Column(DateTime)
 
     # Связи
-    # category = relationship("DishCategory", back_populates="dishes") # Пример связи
-    # recipes = relationship("Recipe", back_populates="dish") # Пример связи
-    # order_compositions = relationship("OrderComposition", back_populates="dish") # Пример связи
+    # category = relationship("DishCategory", back_populates="dishes") 
+    # recipes = relationship("Recipe", back_populates="dish") 
+    # order_compositions = relationship("OrderComposition", back_populates="dish") 
 
 
 # Модель для таблицы Suppliers
@@ -97,7 +96,7 @@ class Ingredient(Base):
     supplier_id = Column(Integer, ForeignKey('suppliers.supplier_id'), nullable=False)
 
     # Связи
-    # recipes = relationship("Recipe", back_populates="ingredient") # Пример связи
+    # recipes = relationship("Recipe", back_populates="ingredient") 
 
 
 # Модель для таблицы Employees
@@ -117,8 +116,8 @@ class Employee(Base):
     restaurant_id = Column(Integer, ForeignKey('restaurants.restaurant_id'), nullable=False)
 
     # Связи
-    # restaurant = relationship("Restaurant", back_populates="employees") # Пример связи
-    # orders_taken = relationship("Order", back_populates="waiter") # Пример связи
+    # restaurant = relationship("Restaurant", back_populates="employees") 
+    # orders_taken = relationship("Order", back_populates="waiter")
 
 
 # Модель для таблицы Orders
@@ -136,9 +135,9 @@ class Order(Base):
     created_at = Column(DateTime)
 
     # Связи
-    # waiter = relationship("Employee", back_populates="orders_taken") # Пример связи
-    # restaurant = relationship("Restaurant") # Пример связи
-    # compositions = relationship("OrderComposition", back_populates="order") # Пример связи
+    # waiter = relationship("Employee", back_populates="orders_taken") 
+    # restaurant = relationship("Restaurant") 
+    # compositions = relationship("OrderComposition", back_populates="order") 
 
 
 # Модель для таблицы Order_Composition
@@ -150,8 +149,8 @@ class OrderComposition(Base):
     quantity = Column(Integer, nullable=False) # CHECK(quantity > 0) на уровне БД
 
     # Связи
-    # order = relationship("Order", back_populates="compositions") # Пример связи
-    # dish = relationship("Dish", back_populates="order_compositions") # Пример связи
+    # order = relationship("Order", back_populates="compositions")
+    # dish = relationship("Dish", back_populates="order_compositions") 
 
 
 # Модель для таблицы Recipes
@@ -164,8 +163,8 @@ class Recipe(Base):
     is_optional = Column(Boolean, default=False)
 
     # Связи
-    # dish = relationship("Dish", back_populates="recipes") # Пример связи
-    # ingredient = relationship("Ingredient", back_populates="recipes") # Пример связи
+    # dish = relationship("Dish", back_populates="recipes") 
+    # ingredient = relationship("Ingredient", back_populates="recipes") 
 
 
 # Модель для таблицы audit_log (из ЛР3)
@@ -178,7 +177,7 @@ class AuditLog(Base):
     operation_time = Column(DateTime) # WITH TIME ZONE в БД
     user_role = Column(String, nullable=False) # NAME в БД соответствует String в SQLAlchemy
     row_id = Column(Integer)
-    old_values = Column(Text) # JSONB в БД соответствует Text или JSON (если используется SQLAlchemy 2.0+)
+    old_values = Column(Text) # JSONB в БД соответствует Text или JSON 
     new_values = Column(Text) # JSONB в БД соответствует Text или JSON
 
 
@@ -194,7 +193,7 @@ class RefreshToken(Base):
 
 
 # --- Модели для представлений из ЛР2 ---
-# Указываем, что это VIEW, а не TABLE (опционально для SQLAlchemy, но полезно для понимания)
+# Указываем, что это VIEW, а не TABLE 
 # Первичный ключ нужен для ORM, хотя в VIEW его может не быть. Используем логически значимое поле или комбинацию.
 
 # Модель для представления sales_by_dish
@@ -202,7 +201,7 @@ class SalesByDishView(Base):
     __tablename__ = 'sales_by_dish'
     __table_args__ = {'info': {'is_view': True}}
 
-    dish_name = Column(String, primary_key=True) # Первичный ключ нужен для ORM
+    dish_name = Column(String, primary_key=True) # Первичный ключ для ORM
     category_name = Column(String)
     total_orders = Column(Integer)
     total_revenue = Column(Numeric(10, 2))
@@ -255,3 +254,4 @@ class IngredientCostsBySupplierView(Base):
     total_used = Column(Numeric(10, 3))
     cost_per_unit = Column(Numeric(10, 2))
     total_cost = Column(Numeric(10, 2))
+
