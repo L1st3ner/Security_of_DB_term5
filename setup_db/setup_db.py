@@ -20,7 +20,6 @@ SQL_SCRIPTS = [
     "05_create_audit.sql",
     "06_create_encryption.sql",
     "07_create_roles_and_users.sql",
-    # ... при необходимости добавь другие скрипты (например, для создания пользователей приложения)
 ]
 
 def run_sql_script(script_path, db_name):
@@ -38,7 +37,6 @@ def run_sql_script(script_path, db_name):
         "-f", script_path
     ]
     try:
-        # print(f"Выполняется скрипт: {script_path}")
         # subprocess.run выполнит команду в системной оболочке
         # check=True вызывает исключение, если psql вернёт ненулевой код возврата (ошибка)
         subprocess.run(cmd, check=True, shell=False)
@@ -84,3 +82,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
